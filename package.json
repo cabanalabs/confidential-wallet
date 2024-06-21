@@ -1,0 +1,44 @@
+{
+  "private": true,
+  "name": "confidential-smart-wallet",
+  "version": "1.0.0",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16"
+  },
+  "files": [
+    "contracts",
+    "lib",
+    "src"
+  ],
+  "scripts": {
+    "lint:prettier": "prettier --check --plugin-search-dir=. --cache '*.json' 'tsconfig/*.json' '{scripts,test}/**/*.ts' 'contracts/**/*.sol'",
+    "lint:solhint": "solhint 'contracts/**/*.sol'",
+    "lint": "npm-run-all lint:**",
+    "format:prettier": "prettier --write --plugin-search-dir=. --cache '*.json' 'tsconfig/*.json' '{scripts,test}/**/*.ts' 'contracts/**/*.sol'",
+    "format:solhint": "solhint --fix 'contracts/**/*.sol'",
+    "format": "npm-run-all format:**",
+    "compile": "hardhat compile",
+    "test": "hardhat test"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.5",
+    "@nomicfoundation/hardhat-viem": "^2.0.0",
+    "@oasisprotocol/sapphire-contracts": "^0.2.7",
+    "@openzeppelin/contracts": "^5.0.2",
+    "@types/chai": "^4.3.10",
+    "@types/chai-as-promised": "^7.1.8",
+    "@types/mocha": ">=9.1.0",
+    "@types/node": ">=18.0.0",
+    "canonicalize": "^2.0.0",
+    "chai": "^4.3.10",
+    "dotenv": "^16.4.5",
+    "hardhat": "^2.22.5",
+    "hardhat-gas-reporter": "^2.0.2",
+    "solidity-coverage": "^0.8.11",
+    "ts-node": ">=8.0.0",
+    "typescript": "~5.0.4",
+    "viem": "^2.8.9"
+  }
+}
