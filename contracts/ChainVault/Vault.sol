@@ -2,12 +2,12 @@
 pragma solidity ^0.8.17;
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import  "./ChainVaultEndpoint.sol";
+import  "./SpokeEndpoint.sol";
 import "./BaseIntent.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IEIP712} from "../shared/interfaces/IEIP712.sol";
 
-contract ChainVault is ChainVaultEndpoint, BaseIntent, IEIP712 {
+contract Vault is SpokeEndpoint, BaseIntent, IEIP712 {
 
     struct Args {
         address enclaveEndpoint;
@@ -20,7 +20,7 @@ contract ChainVault is ChainVaultEndpoint, BaseIntent, IEIP712 {
     uint256 private immutable _CACHED_CHAIN_ID;
     bytes32 private immutable _DOMAIN_SEPARATOR;
 
-    constructor(Args memory _args) ChainVaultEndpoint(_args.enclaveEndpoint, getMessageBus()) {
+    constructor(Args memory _args) SpokeEndpoint(_args.enclaveEndpoint, getMessageBus()) {
         s.authSigners[_args.signerAddress] = true;
         _DOMAIN_SEPARATOR = LibEIP712.buildDomainSeparator();
         _CACHED_CHAIN_ID = block.chainid;
@@ -31,7 +31,7 @@ contract ChainVault is ChainVaultEndpoint, BaseIntent, IEIP712 {
     }
 
     receive() external payable {
-        console.log("receive", msg.sender, msg.value);
+        //console.log("receive", msg.sender, msg.value);
         uint fee = estimateFee(BUS_MSG_IO_LENGTH);
         _postMessage("deposit", abi.encode(block.chainid, msg.sender, address(0), msg.value - fee));
     }
@@ -50,7 +50,7 @@ contract ChainVault is ChainVaultEndpoint, BaseIntent, IEIP712 {
 
     function deposit() public payable {
         require(msg.value > 0, "Invalid amount");
-        console.log("deposit", msg.sender, msg.value);
+        //console.log("deposit", msg.sender, msg.value);
         uint fee = estimateFee(BUS_MSG_IO_LENGTH);
         _postMessage("deposit", abi.encode(block.chainid, msg.sender, address(0), msg.value - fee));
     }

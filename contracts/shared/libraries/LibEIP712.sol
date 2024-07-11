@@ -20,12 +20,12 @@ library LibEIP712 {
 
     /// @notice Builds a domain separator using the current chainId and contract address.
     function buildDomainSeparator() internal view returns (bytes32) {
-        console.log("EIP712Facet._buildDomainSeparator", block.chainid, address(this));
+        //console.log("EIP712Facet._buildDomainSeparator", block.chainid, address(this));
         return keccak256(abi.encode(_TYPE_HASH, _HASHED_NAME, block.chainid, address(this)));
     }
 
     function buildDomainSeparator(uint64 chainId, address verifyingContract) internal pure returns (bytes32) {
-        console.log("EIP712Facet._buildDomainSeparator", chainId, verifyingContract);
+        //console.log("EIP712Facet._buildDomainSeparator", chainId, verifyingContract);
         return keccak256(abi.encode(_TYPE_HASH, _HASHED_NAME, chainId, verifyingContract));
     }
 }

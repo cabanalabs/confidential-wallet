@@ -19,20 +19,26 @@ interface ICelerEndpoint {
     function executeMessage(address _sender, uint64 _senderChainId, bytes calldata _message, address) external payable returns (uint256);
 }
 
-abstract contract ChainVaultEndpoint {
+abstract contract SpokeEndpoint {
 
     uint256 private txSeq;
-    address private immutable enclaveEndpoint;
+    address private /*immutable*/ enclaveEndpoint;
     address private immutable messageBus;
 
-    uint64 constant private REMOTE_CHAIN_ID = 0x5afe;
+    //SAPPHIRE TESTNET
+    uint64 constant private REMOTE_CHAIN_ID = 0x5aff;
 
     constructor(address _enclaveEndpoint, address _messageBus) {
         enclaveEndpoint = _enclaveEndpoint;
         messageBus = _messageBus;
     }
 
-/// Calls the enclaveEndpoint endpoint, returning the amount of native token charged for the operation.
+    /* NOTE: for testing only */
+    function registerEndpoint(address _enclaveEndpoint) public {
+        enclaveEndpoint = _enclaveEndpoint;
+    }
+
+    /// Calls the HubEndpoint, returning the amount of native token charged for the operation.
     function _postMessage(bytes memory _method, bytes memory _message) internal returns (uint256) {
 
         bytes memory envelope = abi.encode(bytes4(keccak256(_method)), txSeq, _message);

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import {EthereumUtils} from "@oasisprotocol/sapphire-contracts/contracts/EthereumUtils.sol";
 import {Sapphire} from "@oasisprotocol/sapphire-contracts/contracts/Sapphire.sol";
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import "./interfaces/ICryptoFacet.sol";
 import "hardhat/console.sol";
+import "@oasisprotocol/sapphire-contracts/contracts/EthereumUtils.sol";
 
 contract CryptoFacet is ICryptoFacet {
     bytes32 constant FACET_STORAGE_POSITION = keccak256("protocol.CryptoFacet.storage");
@@ -42,7 +42,8 @@ contract CryptoFacet is ICryptoFacet {
     function sign(bytes32 digest) external view returns (bytes memory) {
         FacetStorage storage s = facetStorage();
         require(s.secretKey != bytes32(0), "CryptoFacet: No signing key");
-        return Sapphire.sign(Sapphire.SigningAlg.Secp256k1PrehashedSha256, abi.encodePacked(s.secretKey), abi.encodePacked(digest), "");
+        SignatureRSV memory rsv = EthereumUtils.sign(s.addr, s.secretKey, digest);
+        return bytes.concat(rsv.r, rsv.s, bytes1(uint8(rsv.v)));
     }
 
     function generateEthereumAccount() internal view returns (bytes32 secretKey, address addr) {

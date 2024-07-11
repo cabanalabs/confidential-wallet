@@ -20,10 +20,10 @@ abstract contract BaseIntent {
 
     function intentWithdraw(WithdrawIntent memory intent, bytes memory signature) internal {
 
-        console.log("intent.signer", intent.signer);
+        //console.log("intent.signer", intent.signer);
         _intentVerify(intent.signer, intent.nonce, intent.deadline, LibIntent.hash(intent), signature);
 
-        console.log("intentWithdraw", intent.amount, address(this).balance);
+        //console.log("intentWithdraw", intent.amount, address(this).balance);
 
         require(intent.amount < address(this).balance, "Not enough funds");
 

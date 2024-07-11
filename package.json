@@ -19,7 +19,8 @@
     "format:solhint": "solhint --fix 'contracts/**/*.sol'",
     "format": "npm-run-all format:**",
     "compile": "hardhat compile",
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "abi": "wagmi generate"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
@@ -31,10 +32,11 @@
     "@types/chai-as-promised": "^7.1.8",
     "@types/mocha": ">=9.1.0",
     "@types/node": ">=18.0.0",
+    "@wagmi/cli": "^2.1.11",
     "canonicalize": "^2.0.0",
     "chai": "^4.3.10",
     "dotenv": "^16.4.5",
-    "hardhat": "^2.22.5",
+    "hardhat": "^2.22.6",
     "hardhat-gas-reporter": "^2.0.2",
     "solidity-coverage": "^0.8.11",
     "ts-node": ">=8.0.0",

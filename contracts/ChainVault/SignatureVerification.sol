@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
+//TODO - https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/cryptography/ECDSA.sol
+
 library SignatureVerification {
-    /// @notice Thrown when the passed in signature is not a valid length
+    /// @notice 0x4be6321b - Thrown when the passed in signature is not a valid length
     error InvalidSignatureLength();
 
     /// @notice Thrown when the recovered signer is equal to the zero address

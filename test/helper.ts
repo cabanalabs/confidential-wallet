@@ -1,8 +1,8 @@
 import hre from "hardhat";
 import {GetContractReturnType, WalletClient} from "@nomicfoundation/hardhat-viem/types";
 import {hashTypedData, Hex, maxUint256, PrivateKeyAccount} from "viem";
-import {ERC20Mock$Type} from "../artifacts/contracts/mocks/ERC20Mock.sol/ERC20Mock";
 import {intentWithdrawBuilder} from "./intents/withdrawIntent";
+import {ERC20Mock$Type} from "../artifacts/contracts/shared/mocks/ERC20Mock.sol/ERC20Mock";
 
 let deployedErc20: GetContractReturnType<ERC20Mock$Type["abi"]> | undefined;
 
@@ -34,7 +34,7 @@ export async function deployAndApproveERC20(userAccount: WalletClient, spender: 
   return erc20;
 }
 
-export  async function preparePermitWithdraw(signer: PrivateKeyAccount, recipient: Hex, permitAddress: Hex, amount:bigint) {
+export  async function preparePermitWithdraw(signer: PrivateKeyAccount, recipient: Hex, permitAddress: Hex, amount:bigint, chainId: number) {
 
   const permit = {
     signer: signer.address,
@@ -44,18 +44,18 @@ export  async function preparePermitWithdraw(signer: PrivateKeyAccount, recipien
     deadline: maxUint256
   };
 
-  const {domain, types, values} = intentWithdrawBuilder.getWithdrawIntentData(permit, permitAddress, hre.network.config.chainId as number);
+  const {domain, types, values} = intentWithdrawBuilder.getWithdrawIntentData(permit, permitAddress, chainId);
   const data = {domain: domain, types, message: { ...values }, primaryType: 'Withdraw'};
   //console.log(data);
   let signature = await signer.signTypedData(data);
 
-  console.log('preparePermitWithdraw', hashTypedData(data), signature, permit);
+  //console.log('preparePermitWithdraw', hashTypedData(data), signature, permit);
 
   // return {permit, signature};
   return {permit, hash: hashTypedData(data), localSignerSig: signature}
 }
 
-export  async function preparePermitWithdrawToken(signer: PrivateKeyAccount, recipient: Hex, permitAddress: Hex, amount:bigint, token: Hex) {
+export  async function preparePermitWithdrawToken(signer: PrivateKeyAccount, recipient: Hex, permitAddress: Hex, amount:bigint, token: Hex, chainId: number) {
 
   const permit = {
     signer: signer.address,
@@ -68,12 +68,12 @@ export  async function preparePermitWithdrawToken(signer: PrivateKeyAccount, rec
     //}
   };
 
-  const {domain, types, values} = intentWithdrawBuilder.getWithdrawTokenIntentData(permit, permitAddress, hre.network.config.chainId as number);
+  const {domain, types, values} = intentWithdrawBuilder.getWithdrawTokenIntentData(permit, permitAddress, chainId);
   const data = {domain: domain, types, message: { ...values }, primaryType: 'WithdrawToken'};
   //console.log(data);
   let signature = await signer.signTypedData(data);
 
-  console.log('preparePermitWithdrawToken', hashTypedData(data), signature, permit);
+  // console.log('preparePermitWithdrawToken', hashTypedData(data), signature, permit);
 
   // return {permit, signature};
   return {permit, hash: hashTypedData(data), localSignerSig: signature}

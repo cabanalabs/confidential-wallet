@@ -8,8 +8,9 @@ error NotHostChain();
 error MissingEndpoint();
 error InvalidNonce();
 
-abstract contract EnclaveEndpoint {
-    address internal constant messageBus = 0x9Bb46D5100d2Db4608112026951c9C965b233f4D;
+abstract contract HubEndpoint {
+    // Sapphire message bus contract address
+    address internal constant MESSAGE_BUS = 0x9Bb46D5100d2Db4608112026951c9C965b233f4D;
     mapping(uint64 => address) internal hostChains;
     mapping(uint64 => mapping(address => mapping(uint256 => uint256))) private nonceBitmap;
 
@@ -24,10 +25,16 @@ abstract contract EnclaveEndpoint {
         Success
     }
 
+    event RegisteredSpokeChain(uint64 chainId, address spokeContract);
+    event ExecuteMessage1(address sender, uint64 senderChainId);
+    event ExecuteMessage2(bytes4 epSel, uint256 nonce);
+    event ExecuteMessage3(Result result);
+
     function resolveEndpoint(bytes4 epSel, bytes memory args) internal virtual returns (Result);
 
     function registerHostChain(uint64 chainId, address remote) public {
         hostChains[chainId] = remote;
+        emit RegisteredSpokeChain(chainId, remote);
     }
 
     function unregisterHostChain(uint64 chainId) internal {
@@ -36,17 +43,27 @@ abstract contract EnclaveEndpoint {
 
     /// Celer message bus callback function.
     function executeMessage(address _sender, uint64 _senderChainId, bytes calldata _message, address) external payable returns (uint256) {
-        console.log("executeMessage", _sender);
+
+//        emit ExecuteMessage1(_sender, _senderChainId);
+
+        //console.log("executeMessage", _sender);
         // The method can only be called by the message bus;
-        if(!_isLocalNetwork() && msg.sender != messageBus) revert NotMessageBus();
-        // Messages may only be sent by a registered host chain
-        if(hostChains[_senderChainId] != _sender) revert NotHostChain();
+//        if(!_isLocalNetwork() && msg.sender != MESSAGE_BUS) revert NotMessageBus();
+//        // Messages may only be sent by a registered spoke chain contract
+//        if(hostChains[_senderChainId] != _sender) revert NotHostChain();
+
+//        require(_isLocalNetwork() || msg.sender == MESSAGE_BUS, "NotMessageBus");
+//        // Messages may only be sent by the remote endpoint (Enclave or Host).
+//        require(hostChains[_senderChainId] == _sender, "NotRemoteEndpoint");
 
         (bytes4 epSel, uint256 nonce, bytes memory message) = abi.decode(_message, (bytes4, uint256, bytes));
 
         _useUnorderedNonce(_senderChainId, _sender, nonce);
 
         Result result = resolveEndpoint(epSel, message);
+
+        emit ExecuteMessage3(result);
+
         //console.log("Result", result == Result.Success);
         // Convert the Result to a Celer ExecutionStatus.
         if (result == Result.MissingEndpoint) revert MissingEndpoint();

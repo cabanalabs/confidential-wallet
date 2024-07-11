@@ -1,0 +1,21 @@
+/*@tailwind base;*/
+@tailwind components;
+@tailwind utilities;
+
+body, html {
+    background-color: black;
+    height: 100%;
+}
+
+:root {
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+
+    color-scheme: light dark;
+    color: rgba(255, 255, 255);
+    background-color: #000000;
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}

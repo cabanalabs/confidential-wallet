@@ -3,7 +3,7 @@ import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-viem";
 import "./scripts/tasks";
 
-const accounts = process.env.DEPLOYER_SECRET ? [process.env.DEPLOYER_SECRET] : [];
+const accounts = process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [];
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -21,6 +21,11 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       chainId: 31_337
+    },
+    sepolia: {
+      url: 'https://ethereum-sepolia.blockpi.network/v1/rpc/public', //https://rpc.sepolia.org', 'https://eth-sepolia.g.alchemy.com/v2/demo', 'https://ethereum-sepolia.publicnode.com'
+      chainId: 11155111,
+      accounts,
     },
     'bsc-testnet': {
       url: 'https://data-seed-prebsc-1-s1.binance.org:8545',

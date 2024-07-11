@@ -1,13 +1,14 @@
 /* eslint prefer-const: "off" */
 
 import {Hex} from "viem";
-import hre from "hardhat";
+// import hre from "hardhat";
 import {hardhat} from "viem/chains";
+import {HardhatRuntimeEnvironment} from "hardhat/types";
 
-export async function deployLocal () {
-  const {signerAddress, enclaveAddress} = await deployEnclave();
+export async function deployLocal(hre: HardhatRuntimeEnvironment) {
+  const {signerAddress, enclaveAddress} = await deployEnclave(hre);
   console.log('')
-  const chainVaultAddress = await deployChainVault(enclaveAddress, signerAddress);
+  const chainVaultAddress = await deployVault(hre, enclaveAddress, signerAddress);
 
   const wallet = await hre.viem.getContractAt('EnclaveWallet', enclaveAddress);
   await wallet.write.registerHostChain([BigInt(hardhat.id), chainVaultAddress]);
@@ -16,7 +17,7 @@ export async function deployLocal () {
   return [enclaveAddress, chainVaultAddress];
 }
 
-export async function deployErc20 () {
+export async function deployErc20 (hre: HardhatRuntimeEnvironment) {
   const [signer] = await hre.viem.getWalletClients();
   const signerAddr = signer.account.address;
   const erc20 = await hre.viem.deployContract("ERC20Mock",["ERC20Mock","EM"]);
@@ -25,7 +26,7 @@ export async function deployErc20 () {
   console.log('erc20 MintTo:', signerAddr, 'Token:', erc20.address);
 }
 
-export async function deployEnclave() {
+export async function deployEnclave(hre: HardhatRuntimeEnvironment) {
 
   let cryptoFacetAddress: Hex;
   let signerAddress: Hex;
@@ -44,19 +45,21 @@ export async function deployEnclave() {
 
   const enclave = await hre.viem.deployContract('EnclaveWallet', [cryptoFacetAddress]);
 
-  console.log('Signer Address:', signerAddress, 'Enclave Address:', enclave.address);
+  console.log('Enclave Address:', enclave.address, 'Signer Address:', signerAddress);
 
   return {signerAddress, enclaveAddress: enclave.address};
 }
 
-export async function deployChainVault (walletAddr: string, signerAddress: string) {
+export async function deployVault (hre: HardhatRuntimeEnvironment, walletAddr: string, signerAddress: string) {
 
   const initArgs  = {
     enclaveEndpoint: walletAddr,
     signerAddress
   }
 
-  const chainVault = await hre.viem.deployContract('ChainVault', [initArgs]);
+  const chainVault = await hre.viem.deployContract('Vault', [initArgs]);
+
+  console.log('ChainVault Address:', chainVault.address);
 
   return chainVault.address;
 }

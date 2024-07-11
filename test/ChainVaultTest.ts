@@ -10,16 +10,16 @@ import {expect} from "chai";
 import {Hex, parseEther} from "viem";
 import {WalletClient, PublicClient, GetContractReturnType} from "@nomicfoundation/hardhat-viem/types";
 import {EnclaveWallet$Type} from "../artifacts/contracts/Enclave/EnclaveWallet.sol/EnclaveWallet";
-import {ChainVault$Type} from "../artifacts/contracts/ChainVault/ChainVault.sol/ChainVault";
-import {hardhat} from "viem/chains";
+import {bscTestnet, hardhat} from "viem/chains";
 import {deployLocal} from "../scripts/deploy";
 import {privateKeyToAccount} from "viem/accounts";
+import {Vault$Type} from "../artifacts/contracts/ChainVault/Vault.sol/Vault";
 
 const ZERO_ADDRESS = '0x' + '0'.repeat(40) as `0x${string}`;
 
 type FixtureType = {
   enclaveContract: GetContractReturnType<EnclaveWallet$Type["abi"]>,
-  vaultContract: GetContractReturnType<ChainVault$Type["abi"]>,
+  vaultContract: GetContractReturnType<Vault$Type["abi"]>,
   contractOwner: WalletClient,
   userAccount: WalletClient,
   authSigner: WalletClient,
@@ -37,12 +37,12 @@ describe("ChainVault", function () {
   let vaultAddress: `0x${string}`
 
   before(async () => {
-    [enclaveAddress, vaultAddress] = await deployLocal();
+    [enclaveAddress, vaultAddress] = await deployLocal(hre);
     await deployERC20();
 
     const {  contractOwner, userAccount, authSigner, web3PublicClient } = await loadBaseFixture();
     const enclaveContract = await hre.viem.getContractAt('EnclaveWallet', enclaveAddress);
-    const vaultContract = await hre.viem.getContractAt('ChainVault', vaultAddress);
+    const vaultContract = await hre.viem.getContractAt('Vault', vaultAddress);
 
     fixture = { enclaveContract, vaultContract, contractOwner, userAccount, authSigner, web3PublicClient };
   })
@@ -74,9 +74,9 @@ describe("ChainVault", function () {
       const amount = parseEther("10");
 
       const beforeAmount = await getEnclaveTokenBalance(userAccount.account.address, ZERO_ADDRESS);
-      console.log('beforeAmount', beforeAmount, 'amount', amount);
+      //console.log('beforeAmount', beforeAmount, 'amount', amount);
 
-      const userAccountConnectedToChainVault = await hre.viem.getContractAt('ChainVault', vaultAddress, {client: {wallet: userAccount}});
+      const userAccountConnectedToChainVault = await hre.viem.getContractAt('Vault', vaultAddress, {client: {wallet: userAccount}});
       await userAccountConnectedToChainVault.write.deposit({value: amount});
 
       expect(await getEnclaveTokenBalance(userAccount.account.address, ZERO_ADDRESS)).to.be.equal(beforeAmount + amount);
@@ -90,7 +90,7 @@ describe("ChainVault", function () {
       const beforeAmount = await getEnclaveTokenBalance(userAccount.account.address, ZERO_ADDRESS);
       const amount = parseEther("10");
 
-      console.log('beforeAmount', beforeAmount, 'amount', amount);
+      //console.log('beforeAmount', beforeAmount, 'amount', amount);
 
       const hash = await userAccount.sendTransaction({
         to: vaultAddress,
@@ -106,7 +106,7 @@ describe("ChainVault", function () {
       const amount = 1000n;
 
       const erc20 = await deployAndApproveERC20(userAccount, vaultAddress, amount);
-      const userAccountConnectedToChainVault = await hre.viem.getContractAt('ChainVault', vaultAddress, {client: {wallet: userAccount}});
+      const userAccountConnectedToChainVault = await hre.viem.getContractAt('Vault', vaultAddress, {client: {wallet: userAccount}});
       await userAccountConnectedToChainVault.write.depositToken([erc20.address, amount]);
 
       expect(await getEnclaveTokenBalance(userAccount.account.address, erc20.address)).to.equal(amount);
@@ -120,14 +120,14 @@ describe("ChainVault", function () {
     describe("Withdraws", function () {
 
       it("Should withdraw ETH", async function () {
-        const {enclaveContract, vaultContract, contractOwner, userAccount, web3PublicClient}  = fixture;
+        const { userAccount}  = fixture;
         const amount = parseEther("10");
         const userAddress = userAccount.account.address;
         const beforeAmount = await getEnclaveTokenBalance(userAddress,ZERO_ADDRESS);
 
-        const userAccountConnectedToChainVault = await hre.viem.getContractAt('ChainVault', vaultAddress, { client: { wallet: userAccount } });
+        const userAccountConnectedToChainVault = await hre.viem.getContractAt('Vault', vaultAddress, { client: { wallet: userAccount } });
         const userAccountConnectedToEnclave = await hre.viem.getContractAt('EnclaveWallet', enclaveAddress);
-        const { permit, localSignerSig} = await preparePermitWithdraw(mockSigningAccount, userAddress, vaultAddress, amount);
+        const { permit, localSignerSig} = await preparePermitWithdraw(mockSigningAccount, userAddress, vaultAddress, amount, hardhat.id);
 
         let signature = await userAccountConnectedToEnclave.read.signWithdrawIntent([permit, CHAIN_ID, vaultAddress], { account: userAddress });
 
@@ -141,6 +141,26 @@ describe("ChainVault", function () {
         expect(await getEnclaveTokenBalance(userAddress, ZERO_ADDRESS)).to.be.equal(beforeAmount - amount);
       })
 
+      // it("Should generate withdraw ETH intent for a different chain", async function () {
+      //   const { userAccount}  = fixture;
+      //   const amount = parseEther("1");
+      //   const userAddress = userAccount.account.address;
+      //   const chainId = bscTestnet.id;
+      //   const BSC_TESTNET_ETH_TOKEN = '0xd66c6B4F0be8CE5b39D52E0Fd1344c389929B378';
+      //
+      //   const userAccountConnectedToEnclave = await hre.viem.getContractAt('EnclaveWallet', enclaveAddress);
+      //   const { permit, localSignerSig} = await preparePermitWithdrawToken(mockSigningAccount, userAddress, vaultAddress, amount, BSC_TESTNET_ETH_TOKEN, chainId);
+      //
+      //   let signature = await userAccountConnectedToEnclave.read.signWithdrawTokenIntent([permit, BigInt(chainId), vaultAddress], { account: userAddress });
+      //
+      //   if (signature === "0xdeadbeef") {
+      //     console.warn('Unable to generate signature from mock contract, using local signer instead');
+      //     signature = localSignerSig;
+      //   }
+      //
+      //   expect(signature).to.be.exist;
+      // })
+
       it("Should withdraw token - user pays gas", async function () {
         const {userAccount}  = fixture;
         const amount = 1000n;
@@ -149,10 +169,10 @@ describe("ChainVault", function () {
         const userAddress = userAccount.account.address;
         const beforeAmount = await getEnclaveTokenBalance(userAddress, erc20.address);
 
-        const userAccountConnectedToChainVault = await hre.viem.getContractAt('ChainVault', vaultAddress, { client: { wallet: userAccount } });
+        const userAccountConnectedToChainVault = await hre.viem.getContractAt('Vault', vaultAddress, { client: { wallet: userAccount } });
         const userAccountConnectedToEnclave = await hre.viem.getContractAt('EnclaveWallet', enclaveAddress);
 
-        const { permit, localSignerSig} = await preparePermitWithdrawToken(mockSigningAccount, userAddress, vaultAddress, amount, erc20.address);
+        const { permit, localSignerSig} = await preparePermitWithdrawToken(mockSigningAccount, userAddress, vaultAddress, amount, erc20.address, hardhat.id);
 
         let signature = await userAccountConnectedToEnclave.read.signWithdrawTokenIntent([permit, CHAIN_ID, vaultAddress], { account: userAddress });
 
