@@ -85,7 +85,7 @@ task('registerEnclaveAddress')
 .setAction(async (_args, hre)=> {
 
   const wallet = await hre.viem.getContractAt('Vault', _args.chainVaultAddress);
-  const tx = await wallet.write.registerEndpoint([_args.enclaveAddress], { gasPrice: parseGwei('5'), nonce: 65 });
+  const tx = await wallet.write.registerEndpoint([_args.enclaveAddress]);//, { gasPrice: parseGwei('5'), nonce: 65 }); //Sometimes need to speedup/override if network is congested
   console.log('Registered enclave to spoke', _args.enclaveAddress, tx);
 });
 
@@ -95,7 +95,7 @@ task('registerSigningKey')
 .setAction(async (_args, hre)=> {
 
   const wallet = await hre.viem.getContractAt('Vault', _args.chainVaultAddress);
-  const tx = await wallet.write.registerPermitAuthProvider([_args.signerAddress], { gasPrice: parseGwei('5'), nonce: 64 });
+  const tx = await wallet.write.registerPermitAuthProvider([_args.signerAddress]);//, { gasPrice: parseGwei('5'), nonce: 64 }); //Sometimes need to speedup/override if network is congested
   console.log('Registered signer to spoke', _args.signerAddress, tx);
 });
 
@@ -107,5 +107,7 @@ task('deployLocal',async (_args, hre)=> {
 // npx hardhat deployEnclave --network sapphire-testnet
 // npx hardhat deployVault --network bsc-testnet --enclave-address 0x6Bbd5eA77a2D8aab8342bb756dB0844A36FA3e13 --signer-address 0x81A6B72dd67763f6C5B57A5eF687cf81C6FA83CF
 // npx hardhat registerSpokeToHub --network sapphire-testnet --enclave-address 0x6Bbd5eA77a2D8aab8342bb756dB0844A36FA3e13 --chain-vault-address 0xb62967a648b5300acf52e93777ff2b944c330f33 --vault-chain-id 97
+
+// utilities to register enclave and signing key if contracts changed
 // npx hardhat registerEnclaveAddress --network bsc-testnet --enclave-address 0x0cAF8DC5f52D27997dda47a7aD3a807E04AB6A3B --chain-vault-address 0xb62967a648b5300acf52e93777ff2b944c330f33
 // npx hardhat registerSigningKey --network bsc-testnet --signer-address 0x05754A4f0Ba1a117ff39a5d4c641cea7ff5806AB --chain-vault-address 0xb62967a648b5300acf52e93777ff2b944c330f33
